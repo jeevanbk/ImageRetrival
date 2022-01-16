@@ -8,8 +8,8 @@ class WebServices {
   String basic_url = "https://pixabay.com/api/?key=25243882-a7537b34fda5745101b94e439&q=";
 
   Future<ImagesModel> fetchImageDetails(String imageName,var pageCount,
-      {BuildContext  context}) async {
-    String url = basic_url +"$imageName&image_type=photo&page=$pageCount";
+      {BuildContext  context,var perPage }) async {
+    String url = basic_url +"$imageName&image_type=photo&page=$pageCount&per_page=$perPage";
     print(url);
     Map<String, String> headers = <String, String>{
       "Content-Type": "application/json",

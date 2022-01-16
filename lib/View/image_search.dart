@@ -1,10 +1,9 @@
+import 'dart:developer';
 import 'package:excelledia/Utils/loader_util.dart';
 import 'package:excelledia/View/image_maximization.dart';
 import 'package:excelledia/ViewModel/images_view_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:lazy_load_scrollview/lazy_load_scrollview.dart';
 import 'package:provider/provider.dart';
 
 
@@ -20,44 +19,47 @@ class _SearchImageState extends State<SearchImage> {
   String imageName;
   bool isSearched = false;
   var searchValue;
-  ImagesViewModel imagesViewModel = new ImagesViewModel();
-  List<int> data = [];
+  ImagesViewModel imagesViewModel;
+  List data=[];
   int currentLength = 0;
-
-  final int increment = 20;
+  final int increment = 10;
   var pageCount = 1;
-  bool isLoading = false;
+  List dummyList;
+  ScrollController scrollController=ScrollController();
+  int currentMax=10;
 
   @override
   void initState() {
-    imagesViewModel = Provider.of<ImagesViewModel>(context, listen: false);
+    apiCall("Images");
     super.initState();
 
-    // imagesViewModel.getDetails("Flowers",context: context);
   }
+  getMoreData(){
+    print("GET MORE");
+    log("GET MORE");
+    if(imagesViewModel.searchValue~/20==1){
+      pageCount=pageCount+1;
 
-  Future _loadMore() async {
-    setState(() {
-      isLoading = true;
-    });
+    }
+    for(int i=currentMax;i<imagesViewModel.imagesModel.hits.length;i++){
+      dummyList.add("${imagesViewModel.imagesModel.hits[i].largeImageURL}");
+    }currentMax=currentMax+10;
 
-    await new Future.delayed(const Duration(seconds: 2));
-    /*for (var i = currentLength;
-        i <= imagesViewModel.imagesModel.hits.length *//*+increment*//*;
-        i++) {
-      data.add(i);
-    }*/data.addAll(
-        List.generate(increment, (index) => imagesViewModel.imagesModel.hits.length + index));
-
-    setState(() {
-      isLoading = false;
-     // currentLength = 10;
-    });
+    setState(() { });
   }
+  void apiCall(String itemName, {var perpage}) async {
+    log("abc");
 
-  void apiCall(String itemName) async {
-    await imagesViewModel.getDetails("$itemName", pageCount, context: context);
-    _loadMore();
+    imagesViewModel =await Provider.of<ImagesViewModel>(context, listen: false);
+    await imagesViewModel.getDetails("$itemName", pageCount ,context: context);
+
+    log("abc");
+    dummyList=List.generate(currentMax, (index) => "${imagesViewModel.imagesModel.hits[index].largeImageURL}");
+    scrollController.addListener(() {
+      if(scrollController.position.pixels==scrollController.position.maxScrollExtent){
+        getMoreData();
+      }
+    });
   }
 
   @override
@@ -69,146 +71,121 @@ class _SearchImageState extends State<SearchImage> {
       body: SingleChildScrollView(
         child: Consumer<ImagesViewModel>(
             builder: (context, imagesViewModel, child) {
-          return Padding(
-            padding: EdgeInsets.only(top: 12, left: 8, right: 8),
-            child: Column(
-              children: [
-                Container(
-                  height: 50,
-                  child: TextFormField(
-                    controller: searchController,
-                    textInputAction: TextInputAction.go,
-                    onFieldSubmitted: (value) async {
-                      if (searchController.text != imageName) {
-                        if (searchController.text.trim().length > 0) {
-                          imageName = searchController.text.toLowerCase();
-                          setState(() {
-                            apiCall(searchController.text);
-                            isSearched = true;
-                            searchValue = imagesViewModel.searchValue;
-                          });
-                        }
-                      }
-                    },
-                    validator: (value) {
-                      if (value.trim().isEmpty || value.trim().length > 1) {
-                        return 'Please enter image name';
-                      }
-                      return null;
-                    },
-                    textAlign: TextAlign.left,
-                    onChanged: (text) {
-                      setState(() {
-                        if (text.trim().length <= 0) {
-                          searchController.clear();
-                        }
-                      });
-                    },
-                    decoration: InputDecoration(
-                      hintStyle: TextStyle(
-                        color: Color(0xff808080),
-                        fontSize: 14,
-                        fontFamily: "Nunito",
-                        fontWeight: FontWeight.w500,
-                      ),
-                      hintText: "Enter image name",
-                      suffixIcon: IconButton(
-                        onPressed: () async {
+              return Padding(
+                padding: EdgeInsets.only(top: 12, left: 8, right: 8,bottom: 8),
+                child: Column(
+                  children: [
+                    Container(
+                      height: 50,
+                      child: TextFormField(
+                        controller: searchController,
+                        textInputAction: TextInputAction.go,
+                        onFieldSubmitted: (value) async {
                           if (searchController.text != imageName) {
                             if (searchController.text.trim().length > 0) {
-                              showLoaderDialog(context);
                               imageName = searchController.text.toLowerCase();
                               setState(() {
                                 apiCall(searchController.text);
                                 isSearched = true;
                                 searchValue = imagesViewModel.searchValue;
                               });
-                              Navigator.pop(context);
                             }
                           }
                         },
-                        icon: Icon(
-                          Icons.search,
-                          color: Colors.black,
-                        ),
-                      ),
-                      border: OutlineInputBorder(
-                        borderSide: new BorderSide(
-                          color: Color(818086),
-                        ),
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(5),
+                        validator: (value) {
+                          if (value.trim().isEmpty || value.trim().length > 1) {
+                            return 'Please enter image name';
+                          }
+                          return null;
+                        },
+                        textAlign: TextAlign.left,
+                        onChanged: (text) {
+                          setState(() {
+                            if (text.trim().length <= 0) {
+                              searchController.clear();
+                            }
+                          });
+                        },
+                        decoration: InputDecoration(
+                          hintStyle: TextStyle(
+                            color: Color(0xff808080),
+                            fontSize: 14,
+                            fontFamily: "Nunito",
+                            fontWeight: FontWeight.w500,
+                          ),
+                          hintText: "Enter image name",
+                          suffixIcon: IconButton(
+                            onPressed: () async {
+                              if (searchController.text != imageName) {
+                                if (searchController.text.trim().length > 0) {
+                                  showLoaderDialog(context);
+                                  imageName = searchController.text.toLowerCase();
+                                  setState(() {
+                                    apiCall(searchController.text);
+                                    isSearched = true;
+                                    searchValue = imagesViewModel.searchValue;
+                                  });
+                                  Navigator.pop(context);
+                                }
+                              }
+                            },
+                            icon: Icon(
+                              Icons.search,
+                              color: Colors.black,
+                            ),
+                          ),
+                          border: OutlineInputBorder(
+                            borderSide: new BorderSide(
+                              color: Color(818086),
+                            ),
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(5),
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-                isSearched == true
-                    ? /*searchValue!=0?*/ gridView(
-                        imagesViewModel != null ? imagesViewModel : Container())
-                    : Column(
-                  children: [
-                    Container(
-                      child: SvgPicture.asset(
-                        'assets/images/search_icon.svg',
-                        color: Color(0xffA9A9A9),
-                        height:
-                        MediaQuery.of(context).size.height / 3,
-                      ),
+                    SizedBox(
+                      height: 10,
                     ),
-                    SizedBox(height: 25),
-                    Text(
-                      "Enter image name to load data",
-                      style: TextStyle(
-                          fontFamily: "Nunito",
-                          fontSize: 16,
-                          color: Color(0xff696969),
-                          fontWeight: FontWeight.w400),
-                    ),
-                  ],
-                ),
-                /*  :Container()*/
-              ],
-            ),
-          );
-        }),
-      ),
-    );
-  }
+                    imagesViewModel.searchValue!= null &&  imagesViewModel.searchValue!=0?Container(
+                        height: MediaQuery.of(context).size.height*0.8,
+                        child: GridView.builder(
+                            controller: scrollController,
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisSpacing: 8,
+                              mainAxisSpacing: 8,
+                              crossAxisCount: 2,
+                            ),
+                            itemCount: imagesViewModel != null &&
+                                imagesViewModel.imagesModel != null &&
+                                imagesViewModel.imagesModel.hits != null
+                                ? dummyList.length:0,
+                            itemBuilder: (BuildContext context, int index) {
+                              if(dummyList.length==index){
+                                apiCall(searchController.text,perpage: 20);
+                              }
+                              return /*ListTile(title: Text(dummyList[index]),)*/ GestureDetector(
+                                child: FadeInImage(
+                                  image: NetworkImage(
+                                      '${dummyList[index]}'),
+                                  placeholder: AssetImage('assets/images/loader.gif'),
+                                ),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => ImageMazimization(
+                                            imagesViewModel.imagesModel.hits[index].largeImageURL)),
+                                  );
+                                },
+                              );
+                            }),
+                      ):Container(color: Colors.red,
+                  height: 100,),
 
-  Widget gridView(ImagesViewModel model) {
-    return LazyLoadScrollView(
-      isLoading: isLoading,
-      onEndOfPage: () => _loadMore(),
-      child: Scrollbar(
-        child: GridView.builder(
-            primary: false,
-            scrollDirection: Axis.vertical,
-            shrinkWrap: true,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-              crossAxisCount: 2,
-            ),
-            itemCount: model != null &&
-                    model.imagesModel != null &&
-                    model.imagesModel.hits != null
-                ? data.length
-                : 0,
-            itemBuilder: (BuildContext context, int index) {
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => ImageMazimization(
-                            model.imagesModel.hits[index].largeImageURL)),
-                  );
-                },
-                child: FadeInImage(
-                  image: NetworkImage(
-                      '${model.imagesModel.hits[index].largeImageURL}'),
-                  placeholder: AssetImage('assets/images/loader.gif'),
+                    /*  :Container()*/
+                  ],
                 ),
               );
             }),

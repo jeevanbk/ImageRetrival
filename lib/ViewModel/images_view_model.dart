@@ -6,10 +6,10 @@ import 'package:flutter/cupertino.dart';
 class ImagesViewModel extends ChangeNotifier {
   ImagesModel imagesModel = new ImagesModel();
   var searchValue=0;
-  Future<void> getDetails(imageName, pageCount, {BuildContext  context}) async {
+  Future<void> getDetails(imageName, pageCount, {BuildContext  context,var perPage}) async {
    showLoaderDialog(context);
     final response =
-    await WebServices().fetchImageDetails(imageName,pageCount, context: context);
+    await WebServices().fetchImageDetails(imageName,pageCount, context: context,perPage: perPage);
     Navigator.pop(context);
     this.imagesModel = response;
     this.searchValue=response.hits.length;
