@@ -25,27 +25,24 @@ class _SplashState extends State<Splash> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: double.infinity,
-            height: 120,
-            margin: EdgeInsets.only(top: 80, bottom: 30),
-            child:
-                Container(), /*SvgPicture.asset(
-              "assets/images/splash_icon.svg",
-            ),*/
-          ),
-          Text(
-            "Excelledia",
-            style: TextStyle(
-                fontFamily: "Nunito",
-                fontSize: 20,
-                color: Color(0xff000000),
-                fontWeight: FontWeight.bold),
-          )
-        ],
+      body: Center(
+        child: Container(
+            child: RichText(
+              textAlign: TextAlign.start,
+              text: TextSpan(children: <TextSpan>[
+                TextSpan(
+                    text: "Excelledia",
+                    style: TextStyle(color: Colors.black,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 24)),
+                TextSpan(
+                    text:"Ventures.",
+                    style: TextStyle(
+                      color: Colors.blue,
+                      fontSize: 24,
+                      fontWeight:  FontWeight.w500,)),
+              ]),
+            )),
       ),
     );
   }
