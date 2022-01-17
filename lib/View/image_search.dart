@@ -47,6 +47,7 @@ class _SearchImageState extends State<SearchImage> {
         if (scrollController.position.pixels ==
             scrollController.position.maxScrollExtent) {
           showLoaderDialog(context);
+          FocusScope.of(context).requestFocus(FocusNode());
           await _loadMorePhotos(searchText: searchController.text);
           Navigator.pop(context);
         }
@@ -100,6 +101,12 @@ class _SearchImageState extends State<SearchImage> {
                   height: 50,
                   child: TextFormField(
                     controller: searchController,
+                    validator: (value) {
+                      if (value.isEmpty || value.trim().length > 1) {
+                        return 'Please enter image name';
+                      }
+                      return null;
+                    },
                     textInputAction: TextInputAction.go,
                     onFieldSubmitted: (value) async {
                       if (searchController.text != null &&
@@ -129,25 +136,8 @@ class _SearchImageState extends State<SearchImage> {
                             color: Color(0xffF40909));
                       }
                     },
-                    validator: (value) {
-                      if (value.trim().isEmpty || value.trim().length > 1) {
-                        return 'Please enter image name';
-                      }
-                      return null;
-                    },
                     textAlign: TextAlign.left,
-                    onChanged: (text) async {
-                      /*  if (searchController.text == " ") {
-                            searchController.clear();
-                            return;
-                          }
-
-                          pageCount = 1;
-                          tempCount = 1;
-                          await imagesViewModel.getDetailsStarter(
-                              searchController.text, pageCount,
-                              perPage: pageSize);*/
-                    },
+                    onChanged: (text) async {},
                     decoration: InputDecoration(
                       hintStyle: TextStyle(
                         color: Color(0xff808080),
@@ -178,7 +168,7 @@ class _SearchImageState extends State<SearchImage> {
                                     color: Color(0xffF40909))
                                 : print("");
                             Navigator.pop(context);
-                              FocusScope.of(context).requestFocus(FocusNode());
+                            FocusScope.of(context).requestFocus(FocusNode());
                           } else {
                             getToast(
                                 message:
@@ -238,10 +228,7 @@ class _SearchImageState extends State<SearchImage> {
                               );
                             }),
                       )
-                    : Container(
-                        color: Colors.red,
-                        height: 100,
-                      ),
+                    : Container()
 
                 /*  :Container()*/
               ],

@@ -21,16 +21,16 @@ class WebServices {
       "Content-Type": "application/json",
     };
 
-    try{
+    try {
       final response = await http.get(url, headers: headers);
 
       if (response.statusCode == 200 && response.body.isNotEmpty) {
         final json = jsonDecode(response.body);
         return ImagesModel.fromJson(json);
       }
-    }on SocketException{
+    } on SocketException {
       log('Socket Exception ');
-    }catch(e){
+    } catch (e) {
       log('Error :: ${e.toString()}');
     }
     return null;

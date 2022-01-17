@@ -18,7 +18,6 @@ class _SplashState extends State<Splash> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    /*  _loadWidget();*/
     imagesViewModel = Provider.of<ImagesViewModel>(context, listen: false);
     loadWidget();
   }
@@ -33,7 +32,8 @@ class _SplashState extends State<Splash> {
             width: double.infinity,
             height: 120,
             margin: EdgeInsets.only(top: 80, bottom: 30),
-            child: Container(),/*SvgPicture.asset(
+            child:
+                Container(), /*SvgPicture.asset(
               "assets/images/splash_icon.svg",
             ),*/
           ),
@@ -56,7 +56,7 @@ class _SplashState extends State<Splash> {
         MaterialPageRoute(
             builder: (BuildContext context) => ChangeNotifierProvider(
                 create: (context) => ImagesViewModel(), child: SearchImage())),
-            (route) => false);
+        (route) => false);
   }
 
   loadWidget() async {

@@ -22,7 +22,7 @@ class ImagesViewModel extends ChangeNotifier {
     final response = await WebServices().fetchImageDetails(imageName, pageCount,
         context: context, perPage: perPage);
     if (response != null) {
-      this.listLength=response.hits.length;
+      this.listLength = response.hits.length;
       this.imagesModel = response;
     }
 
