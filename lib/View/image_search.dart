@@ -1,11 +1,12 @@
 import 'dart:developer';
+import 'package:excelledia/Model/images_model.dart';
 import 'package:excelledia/Utils/loader_util.dart';
+import 'package:excelledia/Utils/toast_util.dart';
 import 'package:excelledia/View/image_maximization.dart';
 import 'package:excelledia/ViewModel/images_view_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 
 class SearchImage extends StatefulWidget {
   const SearchImage({Key key}) : super(key: key);
@@ -16,50 +17,59 @@ class SearchImage extends StatefulWidget {
 
 class _SearchImageState extends State<SearchImage> {
   TextEditingController searchController = TextEditingController();
-  String imageName;
-  bool isSearched = false;
-  var searchValue;
+
   ImagesViewModel imagesViewModel;
-  List data=[];
-  int currentLength = 0;
-  final int increment = 10;
-  var pageCount = 1;
-  List dummyList;
-  ScrollController scrollController=ScrollController();
-  int currentMax=10;
+  List<Hits> data;
+  ScrollController scrollController = ScrollController();
+  int pageCount = 1;
+  int tempCount = 1;
+  int pageSize = 10;
 
   @override
   void initState() {
-    apiCall("Images");
+    imagesViewModel = Provider.of<ImagesViewModel>(context, listen: false);
+    imagesViewModel.getDetailsStarter("${searchController.text}", pageCount,
+        context: context);
+    paging();
     super.initState();
-
   }
-  getMoreData(){
-    print("GET MORE");
-    log("GET MORE");
-    if(imagesViewModel.searchValue~/20==1){
-      pageCount=pageCount+1;
 
-    }
-    for(int i=currentMax;i<imagesViewModel.imagesModel.hits.length;i++){
-      dummyList.add("${imagesViewModel.imagesModel.hits[i].largeImageURL}");
-    }currentMax=currentMax+10;
-
-    setState(() { });
+  @override
+  void dispose() {
+    scrollController.dispose();
+    searchController.dispose();
+    super.dispose();
   }
-  void apiCall(String itemName, {var perpage}) async {
-    log("abc");
 
-    imagesViewModel =await Provider.of<ImagesViewModel>(context, listen: false);
-    await imagesViewModel.getDetails("$itemName", pageCount ,context: context);
-
-    log("abc");
-    dummyList=List.generate(currentMax, (index) => "${imagesViewModel.imagesModel.hits[index].largeImageURL}");
-    scrollController.addListener(() {
-      if(scrollController.position.pixels==scrollController.position.maxScrollExtent){
-        getMoreData();
+  void paging() {
+    scrollController.addListener(() async {
+      if (pageCount - tempCount == 0) {
+        if (scrollController.position.pixels ==
+            scrollController.position.maxScrollExtent) {
+          showLoaderDialog(context);
+          await _loadMorePhotos(searchText: searchController.text);
+          Navigator.pop(context);
+        }
       }
     });
+  }
+
+  Future _loadMorePhotos({String searchText}) async {
+    pageCount += 1;
+    ImagesModel _imagesModel = await imagesViewModel
+        .getDetails(searchController.text, pageCount, perPage: pageSize);
+
+    if (_imagesModel != null &&
+        _imagesModel.hits != null &&
+        _imagesModel.hits.length > 0) {
+      setState(() {
+        data.addAll(_imagesModel.hits);
+      });
+      tempCount = pageCount;
+    } else {
+      pageCount -= 1;
+      //CustomWidgets.getToast(message: 'No More Orders Found', color: AppResources.errorColor);
+    }
   }
 
   @override
@@ -71,124 +81,173 @@ class _SearchImageState extends State<SearchImage> {
       body: SingleChildScrollView(
         child: Consumer<ImagesViewModel>(
             builder: (context, imagesViewModel, child) {
-              return Padding(
-                padding: EdgeInsets.only(top: 12, left: 8, right: 8,bottom: 8),
-                child: Column(
-                  children: [
-                    Container(
-                      height: 50,
-                      child: TextFormField(
-                        controller: searchController,
-                        textInputAction: TextInputAction.go,
-                        onFieldSubmitted: (value) async {
-                          if (searchController.text != imageName) {
-                            if (searchController.text.trim().length > 0) {
-                              imageName = searchController.text.toLowerCase();
-                              setState(() {
-                                apiCall(searchController.text);
-                                isSearched = true;
-                                searchValue = imagesViewModel.searchValue;
-                              });
-                            }
+          if (pageCount == 1) {
+            if (imagesViewModel.imagesModel != null &&
+                imagesViewModel.imagesModel.hits != null &&
+                imagesViewModel.imagesModel.hits.length > 0) {
+              /// 1st tym ,we ll take values from consumer then from next onwards we ll directly add values
+              ///we are copying values of the list this way[... ] .This is Called Spread Operator
+              /// .If we use = assign operator then refrence or same memory address will be given for both list so if we change one list then another
+              /// list will also be changed
+              data = [...imagesViewModel.imagesModel.hits];
+            }
+          }
+          return Padding(
+            padding: EdgeInsets.only(top: 12, left: 8, right: 8, bottom: 8),
+            child: Column(
+              children: [
+                Container(
+                  height: 50,
+                  child: TextFormField(
+                    controller: searchController,
+                    textInputAction: TextInputAction.go,
+                    onFieldSubmitted: (value) async {
+                      if (searchController.text != null &&
+                          searchController.text.length > 1) {
+                        if (searchController.text == " ") {
+                          searchController.clear();
+                          return;
+                        }
+                        pageCount = 1;
+                        tempCount = 1;
+                        showLoaderDialog(context);
+                        await imagesViewModel.getDetailsStarter(
+                            searchController.text, pageCount,
+                            perPage: pageSize);
+                        imagesViewModel.listLength == 0
+                            ? getToast(
+                                message:
+                                    "No results found for ${searchController.text}",
+                                color: Color(0xffF40909))
+                            : print("");
+                        Navigator.pop(context);
+                        //  FocusScope.of(context).requestFocus(FocusNode());
+                      } else {
+                        getToast(
+                            message:
+                                "Image name should be more than a character",
+                            color: Color(0xffF40909));
+                      }
+                    },
+                    validator: (value) {
+                      if (value.trim().isEmpty || value.trim().length > 1) {
+                        return 'Please enter image name';
+                      }
+                      return null;
+                    },
+                    textAlign: TextAlign.left,
+                    onChanged: (text) async {
+                      /*  if (searchController.text == " ") {
+                            searchController.clear();
+                            return;
                           }
-                        },
-                        validator: (value) {
-                          if (value.trim().isEmpty || value.trim().length > 1) {
-                            return 'Please enter image name';
-                          }
-                          return null;
-                        },
-                        textAlign: TextAlign.left,
-                        onChanged: (text) {
-                          setState(() {
-                            if (text.trim().length <= 0) {
+
+                          pageCount = 1;
+                          tempCount = 1;
+                          await imagesViewModel.getDetailsStarter(
+                              searchController.text, pageCount,
+                              perPage: pageSize);*/
+                    },
+                    decoration: InputDecoration(
+                      hintStyle: TextStyle(
+                        color: Color(0xff808080),
+                        fontSize: 14,
+                        fontFamily: "Nunito",
+                        fontWeight: FontWeight.w500,
+                      ),
+                      hintText: "Search for image name",
+                      suffixIcon: IconButton(
+                        onPressed: () async {
+                          //  searchController.clear();
+                          if (searchController.text != null &&
+                              searchController.text.length > 1) {
+                            if (searchController.text == " ") {
                               searchController.clear();
+                              return;
                             }
-                          });
+                            pageCount = 1;
+                            tempCount = 1;
+                            showLoaderDialog(context);
+                            await imagesViewModel.getDetailsStarter(
+                                searchController.text, pageCount,
+                                perPage: pageSize);
+                            imagesViewModel.listLength == 0
+                                ? getToast(
+                                    message:
+                                        "No results found for ${searchController.text}",
+                                    color: Color(0xffF40909))
+                                : print("");
+                            Navigator.pop(context);
+                              FocusScope.of(context).requestFocus(FocusNode());
+                          } else {
+                            getToast(
+                                message:
+                                    "Image name should be more than a character",
+                                color: Color(0xffF40909));
+                          }
                         },
-                        decoration: InputDecoration(
-                          hintStyle: TextStyle(
-                            color: Color(0xff808080),
-                            fontSize: 14,
-                            fontFamily: "Nunito",
-                            fontWeight: FontWeight.w500,
-                          ),
-                          hintText: "Enter image name",
-                          suffixIcon: IconButton(
-                            onPressed: () async {
-                              if (searchController.text != imageName) {
-                                if (searchController.text.trim().length > 0) {
-                                  showLoaderDialog(context);
-                                  imageName = searchController.text.toLowerCase();
-                                  setState(() {
-                                    apiCall(searchController.text);
-                                    isSearched = true;
-                                    searchValue = imagesViewModel.searchValue;
-                                  });
-                                  Navigator.pop(context);
-                                }
-                              }
-                            },
-                            icon: Icon(
-                              Icons.search,
-                              color: Colors.black,
-                            ),
-                          ),
-                          border: OutlineInputBorder(
-                            borderSide: new BorderSide(
-                              color: Color(818086),
-                            ),
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(5),
-                            ),
-                          ),
+                        icon: Icon(
+                          Icons.search,
+                          color: Colors.black,
+                        ),
+                      ),
+                      border: OutlineInputBorder(
+                        borderSide: new BorderSide(
+                          color: Color(818086),
+                        ),
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(5),
                         ),
                       ),
                     ),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    imagesViewModel.searchValue!= null &&  imagesViewModel.searchValue!=0?Container(
-                        height: MediaQuery.of(context).size.height*0.8,
+                  ),
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                data != null && data.isNotEmpty
+                    ? Container(
+                        height: MediaQuery.of(context).size.height * 0.8,
                         child: GridView.builder(
                             controller: scrollController,
-                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisSpacing: 8,
                               mainAxisSpacing: 8,
                               crossAxisCount: 2,
                             ),
-                            itemCount: imagesViewModel != null &&
-                                imagesViewModel.imagesModel != null &&
-                                imagesViewModel.imagesModel.hits != null
-                                ? dummyList.length:0,
+                            itemCount: data != null && data.isNotEmpty
+                                ? data.length
+                                : 0,
                             itemBuilder: (BuildContext context, int index) {
-                              if(dummyList.length==index){
-                                apiCall(searchController.text,perpage: 20);
-                              }
                               return /*ListTile(title: Text(dummyList[index]),)*/ GestureDetector(
                                 child: FadeInImage(
                                   image: NetworkImage(
-                                      '${dummyList[index]}'),
-                                  placeholder: AssetImage('assets/images/loader.gif'),
+                                      '${data[index].largeImageURL}'),
+                                  placeholder:
+                                      AssetImage('assets/images/loader.gif'),
                                 ),
                                 onTap: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) => ImageMazimization(
-                                            imagesViewModel.imagesModel.hits[index].largeImageURL)),
+                                            data[index].largeImageURL)),
                                   );
                                 },
                               );
                             }),
-                      ):Container(color: Colors.red,
-                  height: 100,),
+                      )
+                    : Container(
+                        color: Colors.red,
+                        height: 100,
+                      ),
 
-                    /*  :Container()*/
-                  ],
-                ),
-              );
-            }),
+                /*  :Container()*/
+              ],
+            ),
+          );
+        }),
       ),
     );
   }
