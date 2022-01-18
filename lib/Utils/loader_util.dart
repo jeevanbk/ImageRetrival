@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-showLoaderDialog(BuildContext context, [String message]) {
+showLoaderDialog(BuildContext context) {
   showDialog(
     barrierDismissible: false,
     context: context,
