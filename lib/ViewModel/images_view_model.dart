@@ -5,7 +5,6 @@ import 'package:flutter/cupertino.dart';
 
 class ImagesViewModel extends ChangeNotifier {
   ImagesModel imagesModel;
-  var listLength;
   var listvalueLength;
 
   /// we ll call this after 1st time to append data in the existing list
@@ -13,7 +12,6 @@ class ImagesViewModel extends ChangeNotifier {
       {BuildContext context, var perPage}) async {
     final response = await WebServices().fetchImageDetails(imageName, pageCount,
         context: context, perPage: perPage);
-    this.listLength = response.hits.length;
     return response;
   }
 

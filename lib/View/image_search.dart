@@ -24,7 +24,7 @@ class _DashboardState extends State<Dashboard> {
 
   int pageCount = 0;
   int pageSize = 10;
-  List<Hits> Data = [];
+  List<Hits> data = [];
   int currentLength = 0;
   final int increment = 10;
   bool isLoading = false;
@@ -76,8 +76,8 @@ class _DashboardState extends State<Dashboard> {
           _imagesModel.hits != null &&
           _imagesModel.hits.length > 0) {
         setState(() {
-          Data.addAll(_imagesModel.hits);
-          Data = Data.toSet().toList();
+          data.addAll(_imagesModel.hits);
+          data = data.toSet().toList();
         });
       } else {
         pageCount -= 1;
@@ -131,7 +131,7 @@ class _DashboardState extends State<Dashboard> {
                           pageCount = 0;
                           previousSearchText = searchController.text;
                           checkingForData = true;
-                          Data.clear();
+                          data.clear();
                           await _loadMore();
                         } else {
                           pageCount = pageCount;
@@ -174,6 +174,7 @@ class _DashboardState extends State<Dashboard> {
                       hintText: "Search for image name",
                       suffixIcon: IconButton(
                         onPressed: () async {
+                          FocusScope.of(context).requestFocus(FocusNode());
                           if (searchController.text != null &&
                               searchController.text.length > 1) {
                             if (searchController.text == " ") {
@@ -191,7 +192,7 @@ class _DashboardState extends State<Dashboard> {
                               pageCount = 0;
                               previousSearchText = searchController.text;
                               checkingForData = true;
-                              Data.clear();
+                              data.clear();
                               await _loadMore();
                             } else {
                               pageCount = pageCount;
@@ -240,7 +241,7 @@ class _DashboardState extends State<Dashboard> {
                 SizedBox(
                   height: 10,
                 ),
-                Data != null && Data.isNotEmpty
+                data != null && data.isNotEmpty
                     ? Container(
                         height: MediaQuery.of(context).size.height * 0.8,
                         child: LazyLoadScrollView(
@@ -262,7 +263,7 @@ class _DashboardState extends State<Dashboard> {
                                     return GestureDetector(
                                       child: CachedNetworkImage(
                                         imageUrl:
-                                            "${Data[index].largeImageURL}",
+                                            "${data[index].largeImageURL}",
                                         placeholder: (context, url) => Center(
                                           child: Image.asset(
                                             'assets/images/loader.gif',
@@ -279,14 +280,14 @@ class _DashboardState extends State<Dashboard> {
                                           context,
                                           MaterialPageRoute(
                                               builder: (context) =>
-                                                  ImageMaximization(Data[index]
+                                                  ImageMaximization(data[index]
                                                       .largeImageURL)),
                                         );
                                       },
                                     );
                                   },
-                                  childCount: Data != null && Data.isNotEmpty
-                                      ? Data.length
+                                  childCount: data != null && data.isNotEmpty
+                                      ? data.length
                                       : 0,
                                 ),
                               ),

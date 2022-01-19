@@ -32,10 +32,13 @@ class _ImageMaximizationState extends State<ImageMaximization> {
             child: Container(
               width: 20.0,
               height: 20.0,
-              child: CircularProgressIndicator(
-                value: event == null
-                    ? 0
-                    : event.cumulativeBytesLoaded / event.expectedTotalBytes,
+              child: Center(
+                child: Image.asset(
+                  'assets/images/loader.gif',
+                  fit: BoxFit.fill,
+                  height: 30,
+                  width: 30,
+                ),
               ),
             ),
           ),
