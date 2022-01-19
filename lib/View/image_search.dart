@@ -243,7 +243,7 @@ class _DashboardState extends State<Dashboard> {
                 ),
                 data != null && data.isNotEmpty
                     ? Container(
-                        height: MediaQuery.of(context).size.height * 0.8,
+                        height: MediaQuery.of(context).size.height * 0.77,
                         child: LazyLoadScrollView(
                           isLoading: isLoading,
                           onEndOfPage: () => _loadMore(),
@@ -254,7 +254,7 @@ class _DashboardState extends State<Dashboard> {
                                 gridDelegate:
                                     SliverGridDelegateWithMaxCrossAxisExtent(
                                   maxCrossAxisExtent: 200.0,
-                                  mainAxisSpacing: 5.0,
+                                  mainAxisSpacing: 0.0,
                                   crossAxisSpacing: 10.0,
                                   childAspectRatio: 1.0,
                                 ),
@@ -294,12 +294,12 @@ class _DashboardState extends State<Dashboard> {
                               SliverList(
                                 delegate: SliverChildBuilderDelegate(
                                   (BuildContext context, int index) {
-                                    return Padding(
+                                    return data.length<10?Container():Padding(
                                       padding:
-                                          const EdgeInsets.only(bottom: 18.0),
+                                      const EdgeInsets.only(bottom: 18.0),
                                       child: Row(
                                         mainAxisAlignment:
-                                            MainAxisAlignment.center,
+                                        MainAxisAlignment.center,
                                         children: [
                                           Image.asset(
                                             'assets/images/loader.gif',
