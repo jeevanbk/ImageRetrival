@@ -10,26 +10,27 @@ import 'package:flutter/material.dart';
 import 'package:lazy_load_scrollview/lazy_load_scrollview.dart';
 import 'package:provider/provider.dart';
 
-class SearchImage extends StatefulWidget {
-  const SearchImage({Key key}) : super(key: key);
+class Dashboard extends StatefulWidget {
+  const Dashboard({Key key}) : super(key: key);
 
   @override
-  _SearchImageState createState() => _SearchImageState();
+  _DashboardState createState() => _DashboardState();
 }
 
-class _SearchImageState extends State<SearchImage> {
+class _DashboardState extends State<Dashboard> {
   TextEditingController searchController = TextEditingController();
 
   ImagesViewModel imagesViewModel;
 
-  int pageCount = 1;
+  int pageCount = 0;
   int pageSize = 10;
   List<Hits> Data = [];
   int currentLength = 0;
   final int increment = 10;
   bool isLoading = false;
-  var checkforSearchName = "images";
-  var valueForImageNameCheck = 1;
+  var previousSearchText = "images";
+  var checkingForData = false;
+  var tempPageCount;
 
   @override
   void initState() {
@@ -57,14 +58,17 @@ class _SearchImageState extends State<SearchImage> {
     setState(() {
       isLoading = true;
     });
+
+    if (pageCount <= 0) {
+      setState(() {
+        pageCount = 0;
+      });
+    } else {
+      pageCount = pageCount;
+    }
     pageCount += 1;
-    //  await new Future.delayed(const Duration(microseconds: 0));
-    //  showLoaderDialog(context);
     ImagesModel _imagesModel = await imagesViewModel
         .getDetails(searchController.text, pageCount, perPage: pageSize);
-    //  Navigator.pop(context);
-    // dummy delay
-    // await new Future.delayed(const Duration(seconds: 2));
     for (var i = currentLength;
         i <= _imagesModel.hits.length + increment;
         i++) {
@@ -89,13 +93,13 @@ class _SearchImageState extends State<SearchImage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Images"),
+        title: Text("Photo Gallery"),
       ),
       body: SingleChildScrollView(
         child: Consumer<ImagesViewModel>(
             builder: (context, imagesViewModel, child) {
           return Padding(
-            padding: EdgeInsets.only(top: 24, left: 8, right: 8, bottom: 8),
+            padding: EdgeInsets.only(top: 12, left: 8, right: 8, bottom: 8),
             child: Column(
               children: [
                 Container(
@@ -117,24 +121,25 @@ class _SearchImageState extends State<SearchImage> {
                           return;
                         }
                         showLoaderDialog(context);
-                        pageCount = 1;
+                        //    pageCount = 1;
                         await imagesViewModel.getDetailsStarter(
-                            "${searchController.text.trim()}", pageCount,
+                            "${searchController.text.trim()}", 1,
                             context: context, perPage: pageSize);
-                        pageCount = 0;
+
                         if (imagesViewModel.listvalueLength != null &&
                             imagesViewModel.listvalueLength != 0) {
-                          checkforSearchName = searchController.text;
-                          valueForImageNameCheck = 2;
+                          pageCount = 0;
+                          previousSearchText = searchController.text;
+                          checkingForData = true;
                           Data.clear();
                           await _loadMore();
                         } else {
-                          if (valueForImageNameCheck == 1) {
-                            checkforSearchName = "";
+                          pageCount = pageCount;
+                          if (checkingForData == false) {
+                            previousSearchText = "";
                           } else {
-                            checkforSearchName = checkforSearchName;
+                            previousSearchText = previousSearchText;
                           }
-
                           await _loadMore();
                         }
                         imagesViewModel.listvalueLength == 0
@@ -144,7 +149,7 @@ class _SearchImageState extends State<SearchImage> {
                                 color: Color(0xffF40909))
                             : print("");
                         imagesViewModel.listvalueLength == 0
-                            ? searchController.text = checkforSearchName
+                            ? searchController.text = previousSearchText
                             : searchController.text = searchController.text;
 
                         Navigator.pop(context);
@@ -176,25 +181,25 @@ class _SearchImageState extends State<SearchImage> {
                               return;
                             }
                             showLoaderDialog(context);
-                            pageCount = 1;
+                            //    pageCount = 1;
                             await imagesViewModel.getDetailsStarter(
-                                "${searchController.text}", pageCount,
+                                "${searchController.text.trim()}", 1,
                                 context: context, perPage: pageSize);
 
-                            pageCount = 0;
                             if (imagesViewModel.listvalueLength != null &&
                                 imagesViewModel.listvalueLength != 0) {
-                              checkforSearchName = searchController.text;
-                              valueForImageNameCheck = 2;
+                              pageCount = 0;
+                              previousSearchText = searchController.text;
+                              checkingForData = true;
                               Data.clear();
                               await _loadMore();
                             } else {
-                              if (valueForImageNameCheck == 1) {
-                                checkforSearchName = "";
+                              pageCount = pageCount;
+                              if (checkingForData == false) {
+                                previousSearchText = "";
                               } else {
-                                checkforSearchName = checkforSearchName;
+                                previousSearchText = previousSearchText;
                               }
-
                               await _loadMore();
                             }
                             imagesViewModel.listvalueLength == 0
@@ -204,7 +209,7 @@ class _SearchImageState extends State<SearchImage> {
                                     color: Color(0xffF40909))
                                 : print("");
                             imagesViewModel.listvalueLength == 0
-                                ? searchController.text = checkforSearchName
+                                ? searchController.text = previousSearchText
                                 : searchController.text = searchController.text;
 
                             Navigator.pop(context);
@@ -274,7 +279,7 @@ class _SearchImageState extends State<SearchImage> {
                                           context,
                                           MaterialPageRoute(
                                               builder: (context) =>
-                                                  ImageMazimization(Data[index]
+                                                  ImageMaximization(Data[index]
                                                       .largeImageURL)),
                                         );
                                       },

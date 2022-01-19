@@ -13,12 +13,10 @@ class Splash extends StatefulWidget {
 
 @override
 class _SplashState extends State<Splash> {
-  ImagesViewModel imagesViewModel = new ImagesViewModel();
 
   void initState() {
     // TODO: implement initState
     super.initState();
-    imagesViewModel = Provider.of<ImagesViewModel>(context, listen: false);
     loadWidget();
   }
 
@@ -47,17 +45,17 @@ class _SplashState extends State<Splash> {
     );
   }
 
-  void checkIsLogin() {
+  void navigationToDashboard() {
     Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
             builder: (BuildContext context) => ChangeNotifierProvider(
-                create: (context) => ImagesViewModel(), child: SearchImage())),
+                create: (context) => ImagesViewModel(), child: Dashboard())),
         (route) => false);
   }
 
   loadWidget() async {
     var _duration = Duration(seconds: 3);
-    return Timer(_duration, checkIsLogin);
+    return Timer(_duration, navigationToDashboard);
   }
 }

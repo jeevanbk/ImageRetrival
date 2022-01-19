@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
-class ImageMazimization extends StatefulWidget {
-  const ImageMazimization(this.Imageurl, {Key key}) : super(key: key);
+class ImageMaximization extends StatefulWidget {
+  const ImageMaximization(this.Imageurl, {Key key}) : super(key: key);
   final Imageurl;
 
   @override
-  _ImageMazimizationState createState() => _ImageMazimizationState();
+  _ImageMaximizationState createState() => _ImageMaximizationState();
 }
 
-class _ImageMazimizationState extends State<ImageMazimization> {
+class _ImageMaximizationState extends State<ImageMaximization> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

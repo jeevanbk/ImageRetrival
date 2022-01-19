@@ -15,7 +15,7 @@ class WebServices {
       {BuildContext context, var perPage}) async {
     String url = basic_url +
         "$imageName&image_type=photo&page=$pageCount&per_page=$perPage";
-    print(url);
+   // print(url);
 
     Map<String, String> headers = <String, String>{
       "Content-Type": "application/json",
